@@ -1,0 +1,33 @@
+[project]
+name = "applications-api"
+version = "0.1.0"
+description = "Job application board service (current state of each application)"
+requires-python = ">=3.12"
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+# The 70% gate applies to the core logic (domain/), checked in CI with:
+#   coverage report --include="app/domain/*" --fail-under=70
+show_missing = true
