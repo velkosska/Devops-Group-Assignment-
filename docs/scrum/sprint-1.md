@@ -14,19 +14,17 @@ feature end to end.
 
 ## Done
 - Product idea chosen: Job Application Tracker (18 November)
-- Project proposal written (`docs/proposal.md`)
-- Repository created, with CODEOWNERS and a pull request template
-- `applications-api` skeleton with `/health` and tests, merged through a reviewed PR
-- Group resource group (`rg-sdd-3b-g4`) located and access confirmed
-- Definition of Done drafted
+- Team repository created (18 November, empty)
 
 ## Not done
-- Skeleton deployed to Azure (no pipeline or Azure resources yet)
+- Skeleton deployed to Azure
 - First core feature
-- Sprint 0 items carried over: Product Backlog
+- Sprint 0 items carried over: Product Backlog, Definition of Done, local skeleton
 
 ## Sprint Review
-TODO: fill in after the Sprint 1 Review in class.
+Not held. The team did not take part in the Sprint 1 Review at
+session S30 (18 November).
 
 ## Retrospective
-TODO: fill in after the Sprint 1 Retrospective in class.
+Not held at S30. TODO: hold a short team retrospective and record why
+Sprints 0 and 1 slipped and what we agree to change.
