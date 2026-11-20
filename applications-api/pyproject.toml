@@ -16,6 +16,10 @@ extend-exclude = [".venv"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependencies are declared as default arguments: Depends(get_session).
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
 
