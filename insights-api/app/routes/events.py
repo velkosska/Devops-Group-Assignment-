@@ -43,7 +43,7 @@ def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
     expected = os.environ.get("INSIGHTS_API_KEY")
     if not expected:
         raise HTTPException(status_code=503, detail="Event intake is not configured")
-    if x_api_key is None or not hmac.compare_digest(x_api_key, expected):
+    if x_api_key is None or not hmac.compare_digest(x_api_key.encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 

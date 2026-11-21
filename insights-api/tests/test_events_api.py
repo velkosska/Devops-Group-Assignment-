@@ -57,6 +57,11 @@ def test_wrong_key_is_rejected(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+def test_non_ascii_invalid_key_is_rejected(client: TestClient) -> None:
+    response = client.post("/events", json=valid_event(), headers=[(b"x-api-key", b"\xe9")])
+    assert response.status_code == 401
+
+
 def test_unconfigured_key_returns_503(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("INSIGHTS_API_KEY", raising=False)
     client = TestClient(create_app())
