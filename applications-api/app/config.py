@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # Database (used from the database PR onwards).
     applications_db_url: SecretStr | None = None
     run_migrations_on_startup: bool = True
+    # How long startup waits for a paused serverless database to resume.
+    db_connect_max_wait_seconds: float = 90.0
 
     # Service-to-service call to insights-api (used when stage events are sent).
     insights_url: str = "http://insights-api:8001"

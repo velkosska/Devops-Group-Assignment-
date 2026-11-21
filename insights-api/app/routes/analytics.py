@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.domain.analytics import calculate_funnel
 from app.domain.stages import Stage
@@ -46,6 +46,13 @@ def get_time_in_stage(request: TimeInStageRequest) -> dict[str, float]:
 class StaleApplicationRequest(BaseModel):
     last_updated: datetime
     threshold_days: int = Field(default=14, ge=0)
+
+    @field_validator("last_updated")
+    @classmethod
+    def normalize_last_updated(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
 
 
 @router.post("/stale")

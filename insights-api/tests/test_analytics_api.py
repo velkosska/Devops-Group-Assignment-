@@ -1,5 +1,6 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -91,3 +92,46 @@ def test_stale_rejects_negative_threshold():
     )
 
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("format", ["naive", "offset", "zulu"])
+def test_stale_accepts_iso_datetime_formats(format):
+    last_updated = datetime.now(UTC) - timedelta(days=15)
+    if format == "naive":
+        timestamp = last_updated.replace(tzinfo=None).isoformat()
+    elif format == "offset":
+        timestamp = last_updated.astimezone(timezone(timedelta(hours=5, minutes=30))).isoformat()
+    else:
+        timestamp = last_updated.isoformat().replace("+00:00", "Z")
+
+    response = client.post("/analytics/stale", json={"last_updated": timestamp})
+
+    assert response.status_code == 200
+    assert response.json() == {"stale": True}
+
+
+def test_stale_rejects_invalid_datetime():
+    response = client.post("/analytics/stale", json={"last_updated": "invalid"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "last_updated"]
+
+
+@pytest.mark.parametrize(("age_days", "expected_stale"), [(13, False), (15, True)])
+def test_stale_default_threshold_is_fourteen_days(age_days, expected_stale):
+    last_updated = datetime.now(UTC) - timedelta(days=age_days)
+    response = client.post("/analytics/stale", json={"last_updated": last_updated.isoformat()})
+
+    assert response.status_code == 200
+    assert response.json() == {"stale": expected_stale}
+
+
+def test_stale_respects_custom_threshold():
+    last_updated = datetime.now(UTC) - timedelta(days=10)
+    response = client.post(
+        "/analytics/stale",
+        json={"last_updated": last_updated.isoformat(), "threshold_days": 7},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"stale": True}

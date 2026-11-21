@@ -1,4 +1,3 @@
-
 from app.domain.analytics import calculate_funnel
 from app.domain.stages import Stage
 
