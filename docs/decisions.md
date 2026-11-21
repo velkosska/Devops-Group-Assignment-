@@ -17,7 +17,10 @@ Azure Log Analytics will be used to query these logs and monitor:
 - Error rate
 - Response time
 
-The team will create a monitoring dashboard and define an SLO measuring the percentage of successful requests completed within a chosen response-time threshold.
+Use shared Log Analytics saved queries for the monitoring dashboard. The board API
+SLO targets 99% of logged `GET /applications` requests returning 2xx in under
+400 ms over seven days. The [monitoring guide](monitoring/README.md) contains the
+queries and the steps for workspace verification.
 
 ## Alternatives Considered
 - Plain-text logs: rejected because they are harder to query consistently.
@@ -28,3 +31,5 @@ The team will create a monitoring dashboard and define an SLO measuring the perc
 - Production errors and slow requests are easier to identify.
 - Monitoring depends on successful log ingestion into Azure Log Analytics.
 - The dashboard and SLO must be verified after deployment.
+- The SLO measures application handling time for observed requests. Ingress
+  failures and waits before the app receives a request are outside this measure.
