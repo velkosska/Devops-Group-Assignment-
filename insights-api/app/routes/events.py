@@ -1,24 +1,36 @@
 import hmac
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
+from app.db import get_session
 from app.domain.events import describes_change
 from app.domain.stages import Stage
+from app.repositories.events import EventConflictError, store_event
 
 router = APIRouter()
 
 
 class StageEvent(BaseModel):
     event_id: UUID
-    application_id: int = Field(gt=0)
+    application_id: int = Field(gt=0, le=2**63 - 1)
     from_stage: Stage | None = None
     to_stage: Stage | None = None
     occurred_at: datetime
+
+    @field_validator("occurred_at")
+    @classmethod
+    def normalize_timestamp(cls, value: datetime) -> datetime:
+        try:
+            return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+        except OverflowError as exc:
+            raise ValueError("occurred_at is outside the supported UTC range") from exc
 
     @model_validator(mode="after")
     def must_describe_a_change(self) -> "StageEvent":
@@ -36,6 +48,23 @@ def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
 
 
 @router.post("/events", status_code=202, dependencies=[Depends(require_api_key)])
-def receive_event(event: StageEvent) -> dict[str, str]:
-    """Accepts a stage event. Not stored yet: storage comes with the database."""
+def receive_event(
+    event: StageEvent, session: Annotated[Session | None, Depends(get_session)]
+) -> dict[str, str]:
+    """Acknowledge a new event only after commit, or an identical replay."""
+    if session is None:
+        raise HTTPException(status_code=503, detail="Event storage is not configured")
+    try:
+        store_event(
+            session,
+            event.event_id,
+            event.application_id,
+            event.from_stage,
+            event.to_stage,
+            event.occurred_at,
+        )
+    except EventConflictError:
+        raise HTTPException(status_code=409, detail="Event ID already has different data") from None
+    except SQLAlchemyError:
+        raise HTTPException(status_code=503, detail="Event storage is unavailable") from None
     return {"status": "accepted", "event_id": str(event.event_id)}
