@@ -64,3 +64,34 @@ Set `INSIGHTS_TEST_SQLSERVER_URL` to a disposable local SQL Server database to
 enable the integration test. The test writes events, checks replay and rollback,
 and starts a second app instance to verify the migration and data survive restart.
 The standard suite also renders the migration as SQL Server SQL without a database.
+
+## Database-backed dashboard
+
+| Route | Response |
+| --- | --- |
+| `GET /funnel` | `{total_applications, stages: [{stage, count, percentage}]}` |
+| `GET /time-in-stage` | `[{stage, median_days}]`. Missing samples return null. |
+| `GET /stale?days=14` | `{threshold_days, applications: [{application_id, stage, last_activity_at}]}` |
+
+The three GET routes follow the proposal and use the same stage order as the domain
+enum. The funnel denominator is distinct applications with at least one event and
+no latest deletion event. An application with no recorded history is outside the
+observed population. Each application contributes at most once per observed stage,
+including a stage present only as the source of a transition. A rejected application
+still counts toward stages it previously reached. Deleted applications are excluded
+from all three results. An empty funnel returns zero counts and percentages.
+
+Stage duration is the median across completed visits in fractional days. Each visit
+needs consecutive events whose arrival and departure stages agree. Repeat visits
+count as separate intervals. Ongoing visits and incomplete intervals are omitted.
+
+Stale results use the latest stage event for each application. They include active
+stages strictly older than the cutoff and exclude offer, rejection, deletion and
+future latest events. Applications with no observed activity are absent. The
+`days` parameter accepts 1 to 36,500. Timestamps in the response use UTC.
+
+The service reads up to 50,001 ordered rows per request and returns 503 if more than
+50,000 events are present, rather than returning partial analytics. The event read
+uses the history index. This MVP uses full observed history within that bound.
+Unavailable storage also returns 503. The request-supplied POST analytics API in
+PR #15 uses separate routes and can coexist with these GET endpoints.
