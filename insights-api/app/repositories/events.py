@@ -60,8 +60,8 @@ def store_event(
             raise EventConflictError from None
 
 
-def read_events(session: Session):
+def read_events(session: Session, *, limit: int = 50_001):
     statement = select(StageEventRecord).order_by(
         StageEventRecord.application_id, StageEventRecord.occurred_at, StageEventRecord.sequence
     )
-    return session.scalars(statement.execution_options(yield_per=500))
+    return session.scalars(statement.limit(limit).execution_options(yield_per=500))

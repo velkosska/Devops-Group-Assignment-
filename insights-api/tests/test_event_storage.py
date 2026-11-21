@@ -66,6 +66,18 @@ def test_sql_server_startup_persistence_replay_and_event_order(monkeypatch):
     app = create_app(settings)
     with TestClient(app) as client, Session(app.state.engine) as session:
         assert client.get("/health").status_code == 200
+        funnel = client.get("/funnel")
+        assert funnel.status_code == 200
+        counts = {stage["stage"]: stage["count"] for stage in funnel.json()["stages"]}
+        assert counts["applied"] >= 1
+        assert counts["screen"] >= 1
+        assert counts["interview"] >= 1
+        durations = client.get("/time-in-stage")
+        assert durations.status_code == 200
+        assert (
+            next(row for row in durations.json() if row["stage"] == "applied")["median_days"] == 1
+        )
+        assert client.get("/stale?days=7").status_code == 200
         history = [
             event for event in read_events(session) if event.application_id == application_id
         ]
