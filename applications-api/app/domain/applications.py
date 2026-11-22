@@ -27,11 +27,42 @@ class ApplicationDetails:
     stage: Stage
 
 
+# These match migration 0001. A longer value would be rejected by the database.
+COMPANY_MAX_LENGTH = 200
+ROLE_MAX_LENGTH = 200
+LOCATION_MAX_LENGTH = 200
+SALARY_RANGE_MAX_LENGTH = 100
+URL_MAX_LENGTH = 2048
+
+
 def normalize_required_text(value: str | None, field_name: str) -> str:
     """Return the trimmed text, or raise if it was missing or blank."""
     if value is None or value.strip() == "":
         raise ApplicationError(f"{field_name} is required")
     return value.strip()
+
+
+def normalize_optional_text(value: str | None) -> str | None:
+    """Trim optional text. Blank text is treated as absent."""
+    if value is None:
+        return None
+    stripped = value.strip()
+    if stripped == "":
+        return None
+    return stripped
+
+
+def ensure_fits(value: str, field_name: str, limit: int) -> str:
+    """Reject text that cannot fit in the applications table."""
+    if len(value) > limit:
+        raise ApplicationError(f"{field_name} must be at most {limit} characters")
+    return value
+
+
+def ensure_optional_fits(value: str | None, field_name: str, limit: int) -> str | None:
+    if value is None:
+        return None
+    return ensure_fits(value, field_name, limit)
 
 
 def coerce_stage(value: Stage | str | None, *, default: Stage | None = None) -> Stage:

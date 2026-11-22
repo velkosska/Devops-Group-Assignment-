@@ -74,6 +74,11 @@ def test_create_rejects_a_missing_company_before_the_domain_rule() -> None:
         CreateApplicationRequest.model_validate({"role": "Data Engineer"})
 
 
+def test_create_rejects_a_company_longer_than_the_column() -> None:
+    with pytest.raises(ValidationError, match="company must be at most 200"):
+        CreateApplicationRequest(company="A" * 201, role="Data Engineer")
+
+
 def test_create_rejects_an_unknown_stage() -> None:
     with pytest.raises(ValidationError, match="stage must be one of"):
         CreateApplicationRequest(company="Spotify", role="Data Engineer", stage="hired")
