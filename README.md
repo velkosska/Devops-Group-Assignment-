@@ -18,11 +18,38 @@ To be added (diagram matching the Azure deployment).
 
 ## Run locally
 
-To be added (`docker compose up`).
+Needs Docker Desktop (or another Docker Engine with Compose v2). From a clean clone:
+
+```bash
+docker compose up --build
+```
+
+No `.env` file is required: `docker-compose.yml` ships local-only defaults. To override
+values, copy `.env.example` to `.env` (gitignored). Those defaults are for local use only;
+Azure uses secrets.
+
+| Service | URL |
+| --- | --- |
+| applications-api | http://127.0.0.1:8000/health |
+| insights-api | http://127.0.0.1:8001/health |
+
+Both services apply Alembic migrations on startup against the SQL Server container. Stop with
+`Ctrl+C`, or `docker compose down` (add `-v` to drop the SQL Server volume).
+
+**Apple Silicon:** SQL Server only ships for `linux/amd64`. In Docker Desktop enable
+"Use Rosetta for x86_64/amd64 emulation" and give Docker at least 4 GB of memory.
 
 ## Run the tests
 
-To be added.
+From each service directory, with Python 3.12 and its `requirements-dev.txt` installed:
+
+```bash
+cd applications-api && pytest
+cd ../insights-api && pytest
+```
+
+CI also runs ruff, black, a 70% coverage gate on `app/domain`, bandit and pip-audit for both
+services.
 
 ## Reproduce the Azure setup
 
