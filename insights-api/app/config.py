@@ -18,9 +18,10 @@ class Settings(BaseSettings):
     cors_allowed_origin: str = "http://localhost:5173"
     log_level: str = "INFO"
 
-    # Database (used once event storage is added).
+    # Private event database.
     insights_db_url: SecretStr | None = None
     run_migrations_on_startup: bool = True
+    db_connect_max_wait_seconds: float = 90.0
 
 
 @lru_cache
