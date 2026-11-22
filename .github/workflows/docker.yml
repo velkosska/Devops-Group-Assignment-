@@ -57,3 +57,37 @@ jobs:
           user="$(docker image inspect "${{ matrix.service }}:ci" --format '{{.Config.User}}')"
           echo "image user: ${user:-<none>}"
           test -n "$user" && test "$user" != "root" && test "$user" != "0"
+
+  # Local stack against SQL Server in compose. Never touches Azure SQL.
+  compose-smoke:
+    name: compose smoke (health)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start compose stack
+        run: docker compose up --build -d
+
+      - name: Wait for /health on both services
+        run: |
+          for port in 8000 8001; do
+            ok=0
+            for _ in $(seq 1 60); do
+              if curl -sf "http://127.0.0.1:${port}/health" >/dev/null; then
+                echo "port ${port} healthy"
+                ok=1
+                break
+              fi
+              sleep 5
+            done
+            test "$ok" = 1
+          done
+
+      - name: Show compose logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down compose stack
+        if: always()
+        run: docker compose down -v
