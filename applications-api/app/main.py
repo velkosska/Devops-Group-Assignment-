@@ -28,6 +28,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 engine.dispose()
 
     app = FastAPI(title="applications-api", lifespan=lifespan)
+    app.state.settings = settings
     app.state.engine = None
     app.state.session_factory = None
     app.include_router(health.router)
