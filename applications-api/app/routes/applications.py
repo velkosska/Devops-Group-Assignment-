@@ -6,7 +6,7 @@ code. It does not run SQL or decide whether a stage move is allowed.
 
 from collections.abc import Callable
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -19,13 +19,18 @@ from app.schemas.applications import (
     UpdateApplicationRequest,
 )
 from app.services.applications import ApplicationNotFound, ApplicationService
+from app.services.insights import InsightsEvents
 
 router = APIRouter()
 
 
-def get_application_service(session: Session = Depends(get_session)) -> ApplicationService:
+def get_application_service(
+    request: Request, session: Session = Depends(get_session)
+) -> ApplicationService:
     """Build the service for this request from Marija's session dependency."""
-    return ApplicationService(SqlApplicationRepository(session))
+    return ApplicationService(
+        SqlApplicationRepository(session), InsightsEvents(request.app.state.settings)
+    )
 
 
 def _to_response(record: ApplicationRecord) -> ApplicationResponse:
