@@ -2,13 +2,26 @@ import pytest
 
 from app.domain.applications import (
     ApplicationError,
+    ensure_fits,
     move_stage,
+    normalize_optional_text,
     normalize_required_text,
     stage_for_new_application,
     validate_application,
     validate_details,
 )
 from app.domain.stages import Stage, is_final
+
+
+def test_optional_text_that_is_blank_is_absent() -> None:
+    assert normalize_optional_text("  Berlin  ") == "Berlin"
+    assert normalize_optional_text("   ") is None
+    assert normalize_optional_text(None) is None
+
+
+def test_text_longer_than_the_column_is_rejected() -> None:
+    with pytest.raises(ApplicationError, match="at most 200"):
+        ensure_fits("A" * 201, "company", 200)
 
 
 def test_company_and_role_are_trimmed() -> None:

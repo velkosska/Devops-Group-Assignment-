@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import Settings, get_settings
 from app.db import initialise_database
 from app.logging_config import configure_logging, request_logging_middleware
-from app.routes import events, health
+from app.routes import analytics, events, health
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -32,6 +32,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = None
     app.include_router(health.router)
     app.include_router(events.router)
+    app.include_router(analytics.router)
 
     # CORS is restricted to the static UI origin only.
     app.add_middleware(

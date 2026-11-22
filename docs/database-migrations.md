@@ -71,5 +71,5 @@ alembic downgrade -1     # undo the last one (local databases only)
 ## Not decided here
 
 - The `applications` columns have maximum lengths (company and role 200, url 2048,
-  location 200, salary range 100). The Pydantic schemas do not enforce them yet. Add the
-  same limits there, or the database will reject long values with a 500.
+  location 200, salary range 100). The domain checks those limits, and the schemas
+  call that check, so a too-long value is rejected before it reaches SQL.

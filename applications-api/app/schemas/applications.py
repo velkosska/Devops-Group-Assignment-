@@ -9,26 +9,39 @@ from datetime import datetime
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 from app.domain.applications import (
+    COMPANY_MAX_LENGTH,
+    LOCATION_MAX_LENGTH,
+    ROLE_MAX_LENGTH,
+    SALARY_RANGE_MAX_LENGTH,
+    URL_MAX_LENGTH,
     ApplicationError,
     coerce_stage,
+    ensure_fits,
+    ensure_optional_fits,
+    normalize_optional_text,
     normalize_required_text,
     stage_for_new_application,
 )
 from app.domain.stages import Stage
 
+_REQUIRED_LIMITS = {"company": COMPANY_MAX_LENGTH, "role": ROLE_MAX_LENGTH}
+_OPTIONAL_LIMITS = {
+    "url": URL_MAX_LENGTH,
+    "location": LOCATION_MAX_LENGTH,
+    "salary_range": SALARY_RANGE_MAX_LENGTH,
+}
+
 
 def _required_text(value: str, info: ValidationInfo) -> str:
-    return normalize_required_text(value, info.field_name or "field")
+    field_name = info.field_name or "field"
+    text = normalize_required_text(value, field_name)
+    return ensure_fits(text, field_name, _REQUIRED_LIMITS[field_name])
 
 
-def _optional_text(value: str | None) -> str | None:
-    """Trim an optional column. Blank text is treated as absent."""
-    if value is None:
-        return None
-    stripped = value.strip()
-    if stripped == "":
-        return None
-    return stripped
+def _optional_text(value: str | None, info: ValidationInfo) -> str | None:
+    field_name = info.field_name or "field"
+    text = normalize_optional_text(value)
+    return ensure_optional_fits(text, field_name, _OPTIONAL_LIMITS[field_name])
 
 
 def _stage_for_create(value: object) -> Stage:
@@ -70,8 +83,8 @@ class CreateApplicationRequest(BaseModel):
 
     @field_validator("url", "location", "salary_range")
     @classmethod
-    def optional_text_is_trimmed(cls, value: str | None) -> str | None:
-        return _optional_text(value)
+    def optional_text_is_trimmed(cls, value: str | None, info: ValidationInfo) -> str | None:
+        return _optional_text(value, info)
 
 
 class UpdateApplicationRequest(BaseModel):
@@ -91,8 +104,8 @@ class UpdateApplicationRequest(BaseModel):
 
     @field_validator("url", "location", "salary_range")
     @classmethod
-    def optional_text_is_trimmed(cls, value: str | None) -> str | None:
-        return _optional_text(value)
+    def optional_text_is_trimmed(cls, value: str | None, info: ValidationInfo) -> str | None:
+        return _optional_text(value, info)
 
 
 class StageChangeRequest(BaseModel):
@@ -136,5 +149,5 @@ class ApplicationResponse(BaseModel):
 
     @field_validator("url", "location", "salary_range")
     @classmethod
-    def optional_text_is_trimmed(cls, value: str | None) -> str | None:
-        return _optional_text(value)
+    def optional_text_is_trimmed(cls, value: str | None, info: ValidationInfo) -> str | None:
+        return _optional_text(value, info)
