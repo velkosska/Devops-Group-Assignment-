@@ -19,9 +19,10 @@ with the same database leaves the schema and events in place. Use
 is for a database whose schema was already migrated. Without a URL the service can
 run health checks, and event intake returns 503.
 
-For image packaging, the Insights image needs the same ODBC Driver 18 install,
-`COPY migrations/`, and `COPY alembic.ini` steps as the Applications API image in
-the team's Dockerfile PR. Retain port 8001 and allow for the startup database wait.
+Build the Insights image from the repository root with
+`docker build -t insights-api:local insights-api`. The image includes ODBC Driver 18
+and the Alembic configuration and migrations. It runs as UID 10001 on port 8001,
+with a 120-second health check start period for the database wake-up and migrations.
 
 ## Event contract
 
