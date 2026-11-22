@@ -1,0 +1,8 @@
+title = "job application tracker"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local-only placeholder values that are meant to be committed"
+paths = ['''^\.env\.example$''']

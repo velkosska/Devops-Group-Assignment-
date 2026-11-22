@@ -1,0 +1,11 @@
+// Paste request-logs.kql first. Save as "Service request totals".
+RequestLogs(24h)
+| summarize Requests = count(), HttpErrors = countif(Status >= 400),
+            ServerErrors = countif(Status >= 500),
+            AverageMs = round(avg(DurationMs), 2),
+            P50Ms = percentile(DurationMs, 50), P95Ms = percentile(DurationMs, 95),
+            P99Ms = percentile(DurationMs, 99)
+         by Service
+| extend HttpErrorRatePct = round(100.0 * HttpErrors / Requests, 2),
+         ServerErrorRatePct = round(100.0 * ServerErrors / Requests, 2)
+| order by Requests desc

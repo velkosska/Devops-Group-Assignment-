@@ -1,0 +1,12 @@
+// Shared header. Paste this before one dashboard, endpoint, or SLO query.
+let Apps = dynamic(["sdd-3b-g4-api", "sdd-3b-g4-insights"]);
+let RequestLogs = (window:timespan) {
+    ContainerAppConsoleLogs_CL
+    | where TimeGenerated >= ago(window) and ContainerAppName_s in (Apps)
+    | extend payload = parse_json(Log_s)
+    | project TimeGenerated, Service = ContainerAppName_s,
+              Method = tostring(payload.method), Path = tostring(payload.path),
+              Status = toint(payload.status), DurationMs = todouble(payload.duration_ms)
+    | where isnotempty(Method) and isnotempty(Path)
+          and Status between (100 .. 599) and DurationMs >= 0
+};

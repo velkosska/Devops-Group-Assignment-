@@ -1,0 +1,12 @@
+// Paste request-logs.kql first. Save as "Board API latency SLO".
+let TargetPct = 99.0;
+let LimitMs = 400.0;
+RequestLogs(7d)
+| where Service == "sdd-3b-g4-api" and Method == "GET" and Path == "/applications"
+| summarize Eligible = count(),
+            Good = countif(Status between (200 .. 299) and DurationMs < LimitMs),
+            FirstObserved = min(TimeGenerated), LastObserved = max(TimeGenerated)
+| extend RawPct = iff(Eligible == 0, real(null), 100.0 * Good / Eligible)
+| project Eligible, Good, ObservedPct = round(RawPct, 3), TargetPct,
+          FirstObserved, LastObserved,
+          Result = case(Eligible == 0, "No data", RawPct >= TargetPct, "At target", "Below target")
