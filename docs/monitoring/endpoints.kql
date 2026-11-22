@@ -1,0 +1,7 @@
+// Paste request-logs.kql first. Save as "Slow and failing endpoints".
+RequestLogs(24h)
+| summarize Requests = count(), HttpErrors = countif(Status >= 400),
+            ServerErrors = countif(Status >= 500), P95Ms = percentile(DurationMs, 95)
+         by Service, Method, Path
+| order by P95Ms desc, ServerErrors desc
+| take 30
