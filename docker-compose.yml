@@ -1,0 +1,89 @@
+# Local development stack: SQL Server plus the two services.
+#
+#   docker compose up --build
+#
+# Works from a clean clone with no .env file: every value has a local-only
+# default. To override one, copy .env.example to .env (it is gitignored).
+# These defaults are for local use only. Azure uses secrets, never these values.
+#
+# Apple Silicon: SQL Server only ships for amd64. In Docker Desktop turn on
+# "Use Rosetta for x86_64/amd64 emulation" and give Docker at least 4 GB memory.
+
+name: job-tracker
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Local_Dev_Only_1!}
+    ports:
+      - "${SQLSERVER_PORT:-1433}:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          '/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -b',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # One-shot job: creates one database per service, then exits.
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Local_Dev_Only_1!}
+      APPLICATIONS_DB_NAME: ${APPLICATIONS_DB_NAME:-applications_db}
+      INSIGHTS_DB_NAME: ${INSIGHTS_DB_NAME:-insights_db}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        for db in "$$APPLICATIONS_DB_NAME" "$$INSIGHTS_DB_NAME"; do
+          /opt/mssql-tools18/bin/sqlcmd -C -S sqlserver -U sa -P "$$MSSQL_SA_PASSWORD" -b \
+            -Q "IF DB_ID('$$db') IS NULL CREATE DATABASE [$$db];"
+        done
+
+  applications-api:
+    build:
+      context: ./applications-api
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
+    environment:
+      APPLICATIONS_DB_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-Local_Dev_Only_1!}@sqlserver:1433/${APPLICATIONS_DB_NAME:-applications_db}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+      RUN_MIGRATIONS_ON_STARTUP: "true"
+      INSIGHTS_URL: http://insights-api:8001
+      INSIGHTS_API_KEY: ${INSIGHTS_API_KEY:-local-dev-shared-key}
+      INSIGHTS_TIMEOUT_SECONDS: ${INSIGHTS_TIMEOUT_SECONDS:-2}
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8000:8000"
+
+  insights-api:
+    build:
+      context: ./insights-api
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
+    environment:
+      INSIGHTS_DB_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-Local_Dev_Only_1!}@sqlserver:1433/${INSIGHTS_DB_NAME:-insights_db}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+      INSIGHTS_API_KEY: ${INSIGHTS_API_KEY:-local-dev-shared-key}
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      RUN_MIGRATIONS_ON_STARTUP: "true"
+    ports:
+      - "8001:8001"
+
+volumes:
+  sqlserver-data:
