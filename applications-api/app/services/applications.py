@@ -4,7 +4,7 @@ The service applies the domain rules and asks the repository to save the
 result. It does not import SQLAlchemy or FastAPI.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.domain.applications import (
     COMPANY_MAX_LENGTH,
@@ -22,6 +22,7 @@ from app.domain.applications import (
 )
 from app.domain.stages import Stage
 from app.repositories.applications import ApplicationRecord, SqlApplicationRepository
+from app.services.insights import InsightsEvents
 
 
 class ApplicationNotFound(LookupError):
@@ -31,8 +32,11 @@ class ApplicationNotFound(LookupError):
 class ApplicationService:
     """Create, list, read, edit, move and delete one person's applications."""
 
-    def __init__(self, repository: SqlApplicationRepository) -> None:
+    def __init__(
+        self, repository: SqlApplicationRepository, events: InsightsEvents | None = None
+    ) -> None:
         self._repository = repository
+        self._events = events
 
     def create(
         self,
@@ -45,7 +49,7 @@ class ApplicationService:
         applied_at: datetime | None = None,
     ) -> ApplicationRecord:
         details = validate_application(company, role, stage)
-        return self._repository.add(
+        record = self._repository.add(
             company=ensure_fits(details.company, "company", COMPANY_MAX_LENGTH),
             role=ensure_fits(details.role, "role", ROLE_MAX_LENGTH),
             stage=details.stage,
@@ -54,6 +58,9 @@ class ApplicationService:
             salary_range=self._optional(salary_range, "salary_range", SALARY_RANGE_MAX_LENGTH),
             applied_at=applied_at,
         )
+        if self._events is not None:
+            self._events.publish(record.id, None, record.stage, record.created_at)
+        return record
 
     def get(self, application_id: int) -> ApplicationRecord:
         return self._require(application_id)
@@ -93,12 +100,16 @@ class ApplicationService:
         updated = self._repository.update_stage(application_id, target)
         if updated is None:
             raise ApplicationNotFound(f"application {application_id} was not found")
+        if self._events is not None:
+            self._events.publish(application_id, current.stage, updated.stage, updated.updated_at)
         return updated
 
     def delete(self, application_id: int) -> None:
-        self._require(application_id)
+        current = self._require(application_id)
         if not self._repository.delete(application_id):
             raise ApplicationNotFound(f"application {application_id} was not found")
+        if self._events is not None:
+            self._events.publish(application_id, current.stage, None, datetime.now(UTC))
 
     def _require(self, application_id: int) -> ApplicationRecord:
         found = self._repository.get(application_id)
