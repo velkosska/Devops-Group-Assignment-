@@ -45,7 +45,7 @@
   --stage-rejected-soft: #f3e4e1;
 
   --chart-bar: #2f6b55;
-  --chart-bar-muted: #c9d8cf;
+  --chart-bar-neutral: #d9d9d3;
   --chart-grid: #e4dfd3;
 
   --focus: #1d5a44;
@@ -113,7 +113,7 @@
     --stage-rejected: #dc8f83;
     --stage-rejected-soft: #2f1e1b;
     --chart-bar: #7cc4a0;
-    --chart-bar-muted: #3d5a4b;
+    --chart-bar-neutral: #3a3a3e;
     --chart-grid: #2a2f2c;
     --focus: #8fd1b0;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -158,7 +158,7 @@
   --stage-rejected: #dc8f83;
   --stage-rejected-soft: #2f1e1b;
   --chart-bar: #7cc4a0;
-  --chart-bar-muted: #3d5a4b;
+  --chart-bar-neutral: #3a3a3e;
   --chart-grid: #2a2f2c;
   --focus: #8fd1b0;
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);

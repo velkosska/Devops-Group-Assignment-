@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { StageDot } from "../../components/StageBadge";
 import { percent, type Funnel } from "../../lib/analytics";
+import { biggestDrop } from "../../lib/headline";
 import { STAGE_META } from "../../lib/stages";
 
 export function FunnelChart({ funnel }: { funnel: Funnel }) {
   const [table, setTable] = useState(false);
   const base = Math.max(funnel.total, 1);
+  const drop = biggestDrop(funnel);
 
   return (
     <div className="chart">
@@ -41,7 +43,10 @@ export function FunnelChart({ funnel }: { funnel: Funnel }) {
             const conversion = prev ? percent(step.count, prev.count) : null;
             const tip = `${STAGE_META[step.stage].label}: ${step.count} of ${funnel.total} applications (${share}%)`;
             return (
-              <li key={step.stage} className="funnel__row">
+              <li
+                key={step.stage}
+                className={`funnel__row ${drop?.index === i ? "is-highlight" : ""}`}
+              >
                 {conversion !== null && (
                   <span className="funnel__conversion num" aria-hidden="true">
                     ↳ {conversion}% moved on
