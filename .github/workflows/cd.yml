@@ -1,0 +1,64 @@
+name: CD
+
+# Runs only on main (after a PR is merged). Pull requests and other branches
+# only run CI and the Docker build, never CD.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer run waits instead of cancelling one in progress.
+concurrency:
+  group: cd-main
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
+  docker:
+    name: Docker build
+    uses: ./.github/workflows/docker.yml
+    permissions:
+      contents: read
+
+  # Only if CI and the Docker build both passed on this commit.
+  push-images:
+    name: push image (${{ matrix.service }})
+    needs: [ci, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [applications-api, insights-api]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push, tagged with the commit SHA
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          provenance: false
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
