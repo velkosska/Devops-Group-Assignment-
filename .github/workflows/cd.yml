@@ -126,11 +126,13 @@ jobs:
 
       # Exercises the real feature against the live database: create, read, edit,
       # move, delete. The trap removes the test application if a check fails midway.
-      - name: Smoke test the board API and CORS for the UI
+      - name: Smoke test both services end to end and CORS for the UI
         run: |
           set -euo pipefail
           api="${APPLICATIONS_URL}/applications"
           json=(-H "Content-Type: application/json")
+          funnel_total() { curl -fsS --max-time 30 "${INSIGHTS_URL}/funnel" | jq -er ".total_applications"; }
+          before="$(funnel_total)"
           id="$(curl -fsS --max-time 60 -X POST "${json[@]}" \
             -d '{"company": "CD smoke test", "role": "Pipeline check"}' "$api" | jq -er '.id')"
           trap 'curl -sS --max-time 30 -o /dev/null -X DELETE "${api}/${id}" || true' EXIT
@@ -141,16 +143,25 @@ jobs:
             | jq -e '.role == "Pipeline check (edited)"' > /dev/null
           curl -fsS --max-time 30 -X PATCH "${json[@]}" -d '{"stage": "screen"}' "${api}/${id}/stage" \
             | jq -e '.stage == "screen"' > /dev/null
+          # The events crossed to insights-api, which now counts the test application.
+          test "$(funnel_total)" -eq "$((before + 1))"
           curl -fsS --max-time 30 -o /dev/null -X DELETE "${api}/${id}"
           trap - EXIT
           status="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' "${api}/${id}")"
           test "$status" = "404"
-          echo "create, read, edit, move and delete all work"
+          # Deleted applications drop out of the analytics again (#57).
+          test "$(funnel_total)" -eq "$before"
+          echo "create, read, edit, move and delete all work, and insights-api counted the test application until it was deleted"
           allowed="$(curl -fsS --max-time 30 -o /dev/null -D - -X OPTIONS \
             -H "Origin: ${UI_URL}" -H "Access-Control-Request-Method: POST" "$api" \
             | tr -d '\r' | grep -i '^access-control-allow-origin:' | cut -d' ' -f2)"
           test "$allowed" = "$UI_URL"
           echo "the board API allows requests from ${UI_URL}"
+          allowed="$(curl -fsS --max-time 30 -o /dev/null -D - -X OPTIONS \
+            -H "Origin: ${UI_URL}" -H "Access-Control-Request-Method: GET" "${INSIGHTS_URL}/funnel" \
+            | tr -d '\r' | grep -i '^access-control-allow-origin:' | cut -d' ' -f2)"
+          test "$allowed" = "$UI_URL"
+          echo "the insights API allows requests from ${UI_URL}"
 
       - uses: actions/setup-node@v4
         with:
