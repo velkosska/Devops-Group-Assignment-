@@ -102,6 +102,8 @@ jobs:
           insights_fqdn="$(az containerapp show -n "${PREFIX}-insights" -g "$RESOURCE_GROUP" --query properties.configuration.ingress.fqdn -o tsv)"
           echo "APPLICATIONS_URL=https://${api_fqdn}" >> "$GITHUB_ENV"
           echo "INSIGHTS_URL=https://${insights_fqdn}" >> "$GITHUB_ENV"
+          ui_host="$(az staticwebapp show -n "${PREFIX}-ui" -g "$RESOURCE_GROUP" --query defaultHostname -o tsv)"
+          echo "UI_URL=https://${ui_host}" >> "$GITHUB_ENV"
 
       # A cold start can find the database paused (up to about a minute to resume),
       # then migrations run, so allow up to about 5 minutes per service.
@@ -121,6 +123,34 @@ jobs:
               exit 1
             fi
           done
+
+      # Exercises the real feature against the live database: create, read, edit,
+      # move, delete. The trap removes the test application if a check fails midway.
+      - name: Smoke test the board API and CORS for the UI
+        run: |
+          set -euo pipefail
+          api="${APPLICATIONS_URL}/applications"
+          json=(-H "Content-Type: application/json")
+          id="$(curl -fsS --max-time 60 -X POST "${json[@]}" \
+            -d '{"company": "CD smoke test", "role": "Pipeline check"}' "$api" | jq -er '.id')"
+          trap 'curl -sS --max-time 30 -o /dev/null -X DELETE "${api}/${id}" || true' EXIT
+          echo "created application ${id}"
+          curl -fsS --max-time 30 "$api" | jq -e --argjson id "$id" 'any(.[]; .id == $id)' > /dev/null
+          curl -fsS --max-time 30 -X PUT "${json[@]}" \
+            -d '{"company": "CD smoke test", "role": "Pipeline check (edited)"}' "${api}/${id}" \
+            | jq -e '.role == "Pipeline check (edited)"' > /dev/null
+          curl -fsS --max-time 30 -X PATCH "${json[@]}" -d '{"stage": "screen"}' "${api}/${id}/stage" \
+            | jq -e '.stage == "screen"' > /dev/null
+          curl -fsS --max-time 30 -o /dev/null -X DELETE "${api}/${id}"
+          trap - EXIT
+          status="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' "${api}/${id}")"
+          test "$status" = "404"
+          echo "create, read, edit, move and delete all work"
+          allowed="$(curl -fsS --max-time 30 -o /dev/null -D - -X OPTIONS \
+            -H "Origin: ${UI_URL}" -H "Access-Control-Request-Method: POST" "$api" \
+            | tr -d '\r' | grep -i '^access-control-allow-origin:' | cut -d' ' -f2)"
+          test "$allowed" = "$UI_URL"
+          echo "the board API allows requests from ${UI_URL}"
 
       - uses: actions/setup-node@v4
         with:
@@ -157,3 +187,16 @@ jobs:
           output_location: ""
           skip_app_build: true
           skip_api_build: true
+
+      - name: Check the live UI loads
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl -fsS --max-time 15 -o /dev/null "${UI_URL}/board"; then
+              echo "UI loads at ${UI_URL}"
+              exit 0
+            fi
+            echo "attempt ${attempt}: not yet"
+            sleep 10
+          done
+          echo "::error::${UI_URL} did not load after the upload"
+          exit 1
