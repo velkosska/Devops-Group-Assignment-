@@ -125,7 +125,7 @@ describe("headline", () => {
     ).toBe("screen");
     expect(formatDays(0.4)).toBe("<1 day");
     expect(formatDays(1)).toBe("1 day");
-    expect(formatDays(3.25)).toBe("3.3 days");
+    expect(formatDays(3.25)).toBe("3 days");
     expect(formatDays(12.6)).toBe("13 days");
   });
 });

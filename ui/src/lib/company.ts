@@ -8,14 +8,6 @@ export function monogram(company: string): string {
   return (words[0][0] + words[1][0]).toUpperCase();
 }
 
-export function companyHue(company: string): number {
-  let hash = 0;
-  for (const char of company.trim().toLowerCase()) {
-    hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
-  }
-  return hash % 360;
-}
-
 const BOARD_HOSTS: Record<string, "path" | "subdomain"> = {
   "greenhouse.io": "path",
   "lever.co": "path",

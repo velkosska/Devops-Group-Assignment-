@@ -42,7 +42,7 @@
   gap: 4px;
   margin-top: 6px;
   color: var(--ink-2);
-  font-size: 14.5px;
+  font-size: 14px;
 }
 .drawer__section {
   padding: var(--s-5) var(--s-6);
@@ -102,7 +102,7 @@
   background: none;
   color: var(--ink-3);
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
   text-align: center;
   transition: color var(--dur-fast);
 }
@@ -245,7 +245,7 @@
 }
 .timeline__item time {
   color: var(--ink-3);
-  font-size: 12.5px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -307,7 +307,7 @@
     grid-template-columns: 130px 1fr;
   }
   .stepper__step button {
-    font-size: 11.5px;
+    font-size: 12px;
     min-height: 56px;
   }
 }

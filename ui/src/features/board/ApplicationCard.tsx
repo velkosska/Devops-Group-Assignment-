@@ -77,24 +77,23 @@ export const ApplicationCard = memo(function ApplicationCard({
         </div>
       </div>
 
-      {(app.location || app.salary_range) && (
-        <p className="card__meta">
-          {app.location && (
-            <span>
-              <Icon name="pin" size={13} />
-              {app.location}
-            </span>
-          )}
-          {app.salary_range && (
-            <span>
-              <Icon name="money" size={13} />
-              {app.salary_range}
-            </span>
-          )}
-        </p>
-      )}
-
       <div className="card__foot">
+        {(app.location || app.salary_range) && (
+          <p className="card__meta">
+            {app.location && (
+              <span>
+                <Icon name="pin" size={13} />
+                {app.location}
+              </span>
+            )}
+            {app.salary_range && (
+              <span>
+                <Icon name="money" size={13} />
+                {app.salary_range}
+              </span>
+            )}
+          </p>
+        )}
         {quiet ? (
           <span
             className="chip chip--attention"

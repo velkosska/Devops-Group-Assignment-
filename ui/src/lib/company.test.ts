@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { companyFromUrl, companyHue, displayHost, monogram, normalizeUrl } from "./company";
+import { companyFromUrl, displayHost, monogram, normalizeUrl } from "./company";
 
 describe("companyFromUrl", () => {
   it.each([
@@ -36,14 +36,6 @@ describe("monogram", () => {
   });
   it("falls back to a question mark", () => {
     expect(monogram("  ")).toBe("?");
-  });
-});
-
-describe("companyHue", () => {
-  it("is stable and ignores case and spacing", () => {
-    expect(companyHue("Northwind")).toBe(companyHue(" northwind "));
-    expect(companyHue("Northwind")).toBeGreaterThanOrEqual(0);
-    expect(companyHue("Northwind")).toBeLessThan(360);
   });
 });
 
