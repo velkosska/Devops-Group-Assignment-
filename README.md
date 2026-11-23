@@ -56,7 +56,12 @@ services.
 
 ## Reproduce the Azure setup
 
-To be added.
+All Azure resources are defined as Bicep in `infra/` and deployed from Azure Cloud Shell, in the resource
+group `rg-sdd-3b-g4` (westeurope). The step-by-step guide, with every command and no passwords, is in
+[docs/azure-setup.md](docs/azure-setup.md).
+
+After that one-time setup, only the pipeline changes anything: every merge to `main` runs CI, pushes
+both images to GHCR tagged with the commit SHA, and deploys them to the Container Apps.
 
 ## Documentation
 
