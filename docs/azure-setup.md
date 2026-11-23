@@ -90,6 +90,16 @@ az identity federated-credential create --name github-main \
   --audiences api://AzureADTokenExchange
 ```
 
+GitHub may send the subject with numeric account and repository IDs instead of names, so a second rule trusts that form too (still only main of this repository):
+
+```bash
+az identity federated-credential create --name github-main-ids \
+  --identity-name sdd-3b-g4-github --resource-group rg-sdd-3b-g4 \
+  --issuer https://token.actions.githubusercontent.com \
+  --subject "repo:velkosska@139571183/Devops-Group-Assignment-@1463422952:ref:refs/heads/main" \
+  --audiences api://AzureADTokenExchange
+```
+
 GitHub repository secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`. Repository variables: `PREFIX`, `RESOURCE_GROUP`.
 
 ## Troubleshooting
@@ -98,3 +108,4 @@ GitHub repository secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIP
 | --- | --- |
 | Error 40613, "database is not currently available" | The serverless database is resuming from auto-pause. Wait about a minute and retry. |
 | Container App stays "InProgress"; `revision list` says `ManagedClusterSuspended` | Azure suspended the environment's compute. On 23 November we deleted and recreated `sdd-3b-g4-env` with step 1. |
+| CD fails at "Sign in to Azure" with "AADSTS700213: No matching federated identity record" | The subject GitHub sent does not match any federated credential. The error shows the subject it sent; add a credential with exactly that subject (see step 6). |
