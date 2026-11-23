@@ -111,6 +111,36 @@ describe("normalizers", () => {
     expect(funnel.steps[3].count).toBe(0);
   });
 
+  it("reads the persisted Insights GET /funnel contract", () => {
+    const funnel = normalizeFunnel({
+      total_applications: 1,
+      stages: [
+        { stage: "applied", count: 1, percentage: 100.0 },
+        { stage: "screen", count: 0, percentage: 0.0 },
+        { stage: "interview", count: 1, percentage: 100.0 },
+        { stage: "offer", count: 0, percentage: 0.0 },
+        { stage: "rejected", count: 0, percentage: 0.0 },
+      ],
+    });
+    expect(funnel.total).toBe(1);
+    expect(funnel.steps.map((s) => s.count)).toEqual([1, 0, 1, 0]);
+    expect(funnel.rejected).toBe(0);
+  });
+
+  it("prefers total_applications over an inferred stage maximum", () => {
+    const funnel = normalizeFunnel({
+      total_applications: 0,
+      stages: [
+        { stage: "applied", count: 0 },
+        { stage: "screen", count: 0 },
+        { stage: "interview", count: 0 },
+        { stage: "offer", count: 0 },
+        { stage: "rejected", count: 0 },
+      ],
+    });
+    expect(funnel.total).toBe(0);
+  });
+
   it("ignores unknown stages and junk", () => {
     expect(normalizeFunnel({ foo: 3, applied: "x" }).steps[0].count).toBe(0);
     expect(normalizeFunnel(null).total).toBe(0);
@@ -140,6 +170,24 @@ describe("normalizers", () => {
     expect(stale.map((s) => s.days)).toEqual([20, 20]);
     expect(stale.map((s) => s.application_id).sort()).toEqual([2, 5]);
     expect(stale).toHaveLength(2);
+  });
+
+  it("reads the persisted Insights GET /stale contract", () => {
+    const now = new Date("2026-11-30T00:00:00Z");
+    const stale = normalizeStale(
+      {
+        threshold_days: 7,
+        applications: [
+          {
+            application_id: 1,
+            stage: "interview",
+            last_activity_at: "2026-11-20T00:00:00Z",
+          },
+        ],
+      },
+      now,
+    );
+    expect(stale).toEqual([{ application_id: 1, days: 10 }]);
   });
 
   it("reads and sorts a timeline", () => {
