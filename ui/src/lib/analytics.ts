@@ -144,10 +144,12 @@ export function normalizeFunnel(payload: unknown): Funnel {
     ["stages", "funnel", "data", "counts"],
   );
   const steps = PATH_STAGES.map((stage) => ({ stage, count: map.get(stage) ?? 0 }));
-  const explicitTotal =
+  const record =
     payload && typeof payload === "object" && !Array.isArray(payload)
-      ? asNumber((payload as Record<string, unknown>).total)
+      ? (payload as Record<string, unknown>)
       : null;
+  // Persisted Insights uses total_applications; older shapes used total.
+  const explicitTotal = asNumber(record?.total_applications) ?? asNumber(record?.total);
   return {
     total: explicitTotal ?? Math.max(steps[0].count, ...steps.map((s) => s.count)),
     steps,
@@ -174,7 +176,13 @@ export function normalizeStale(payload: unknown, now = new Date()): StaleItem[] 
     const id = asNumber(row.application_id ?? row.id);
     if (id === null) continue;
     let days = asNumber(row.days ?? row.days_idle ?? row.days_since ?? row.idle_days);
-    const last = row.last_event_at ?? row.last_updated ?? row.occurred_at ?? row.updated_at;
+    // Persisted Insights uses last_activity_at; keep the older timestamp names too.
+    const last =
+      row.last_activity_at ??
+      row.last_event_at ??
+      row.last_updated ??
+      row.occurred_at ??
+      row.updated_at;
     if (days === null && typeof last === "string" && !Number.isNaN(Date.parse(last))) {
       days = Math.floor((now.getTime() - Date.parse(last)) / DAY_MS);
     }
