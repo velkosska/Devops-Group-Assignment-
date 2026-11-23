@@ -34,13 +34,16 @@ reviewed pull requests.
 - Process: GitHub Project stories, branch protection, `.mailmap`, `AI_USAGE.md`
 
 ## Not done (at time of writing)
-- Live deploy of both Container Apps and the UI (Azure environment was suspended
-  and is being recreated; CD part 2 written, waiting on the env)
-- README live URL and architecture diagram filled from the real deployment
 - Monitoring dashboard and SLO verified against production Log Analytics
 - Formal Sprint 2 Review / Retrospective write-up after the in-class sessions
   (25–26 November)
 - Final `submission` tag on `main`
+
+## Done later in the sprint (23 November)
+- Container Apps environment recreated after Azure suspension; both APIs live
+  with `/health` 200
+- CD part 2 merged: image swap, `/health` gate, UI build/upload to Static Web Apps
+- Live URLs and architecture sketch added to the README
 
 ## Sprint Review
 In class on 25–26 November (live demo from the public URL once deploy succeeds).

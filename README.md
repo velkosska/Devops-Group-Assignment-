@@ -6,15 +6,43 @@ pipeline-analytics dashboard that shows where applications drop off and which ha
 Built as a Scrum team project for the DevOps course: two containerised services, each with its
 own Azure SQL serverless database, behind a static React UI, deployed to Azure by GitHub Actions.
 
-> Status: work in progress. Sections below are filled in as each part is merged.
+> Deployed on Azure. Every merge to `main` runs CI, pushes images to GHCR, updates
+> the Container Apps, checks `/health`, and uploads the UI to Static Web Apps.
 
 ## Live URL
 
-To be added after the first successful deployment.
+| What | URL |
+| --- | --- |
+| UI (Static Web App) | https://lively-river-09befa003.4.azurestaticapps.net |
+| applications-api | https://sdd-3b-g4-api.redpebble-0dcf8de4.westeurope.azurecontainerapps.io |
+| insights-api | https://sdd-3b-g4-insights.redpebble-0dcf8de4.westeurope.azurecontainerapps.io |
+
+Useful paths: `/health` on both APIs, `/applications` on applications-api. The API
+root (`/`) returns `{"detail":"Not Found"}` — that is normal; these are APIs, not
+sites.
+
+**Cold starts:** Container Apps scale to zero and Azure SQL serverless auto-pauses.
+After roughly 15 minutes with no traffic, the first request can take 1–2 minutes or
+return a 503 / time out. Wait a minute and refresh; the next requests are fast.
 
 ## Architecture
 
-To be added (diagram matching the Azure deployment).
+```text
+Browser
+   │
+   ├─ HTTPS ──► Static Web App (React UI)
+   │                 │
+   │                 ├─ /applications… ──► applications-api (Container App) ──► Azure SQL (applications)
+   │                 │
+   │                 └─ /funnel…        ──► insights-api (Container App)     ──► Azure SQL (insights)
+   │
+   └─ applications-api also POSTs stage events to insights-api (X-API-Key)
+
+Logs from both Container Apps go to the shared Log Analytics workspace.
+```
+
+Resource group `rg-sdd-3b-g4` (westeurope), prefix `sdd-3b-g4`. See
+[docs/azure-setup.md](docs/azure-setup.md) and [docs/decisions.md](docs/decisions.md).
 
 ## Run locally
 
