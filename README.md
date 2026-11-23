@@ -20,6 +20,9 @@ To be added (diagram matching the Azure deployment).
 
 To be added (`docker compose up`).
 
+The UI can be run on its own: `cd ui && npm ci && npm run dev`. Without API URLs it uses
+in-browser sample data. See [ui/README.md](ui/README.md).
+
 ## Run the tests
 
 To be added.

@@ -28,6 +28,7 @@ dist/
 # Node / UI
 node_modules/
 ui/dist/
+ui/coverage/
 npm-debug.log*
 
 # Infrastructure as code local state
