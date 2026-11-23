@@ -39,6 +39,9 @@ Both services apply Alembic migrations on startup against the SQL Server contain
 **Apple Silicon:** SQL Server only ships for `linux/amd64`. In Docker Desktop enable
 "Use Rosetta for x86_64/amd64 emulation" and give Docker at least 4 GB of memory.
 
+The UI can be run on its own: `cd ui && npm ci && npm run dev`. Without API URLs it uses
+in-browser sample data. See [ui/README.md](ui/README.md).
+
 ## Run the tests
 
 From each service directory, with Python 3.12 and its `requirements-dev.txt` installed:

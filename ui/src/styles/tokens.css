@@ -1,0 +1,167 @@
+:root {
+  color-scheme: light;
+
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-sunk: #f0f0ed;
+  --surface-hover: #f8f8f6;
+  --overlay: rgb(28 30 27 / 0.32);
+
+  --ink: #1b1c1b;
+  --ink-2: #4b4e4c;
+  --ink-3: #656866;
+  --ink-inverse: #f7f4ec;
+
+  --line: #e5e5e1;
+  --line-strong: #d2d2cc;
+
+  --brand: #1d4a3a;
+  --brand-hover: #163b2e;
+  --brand-ink: #f4efe4;
+  --brand-soft: #e2ebe4;
+  --brand-text: #1d5a44;
+
+  --attention: #9a5b00;
+  --attention-soft: #fbefd9;
+  --attention-dot: #e09a2d;
+
+  --danger: #b4321f;
+  --danger-hover: #962818;
+  --danger-soft: #fbe7e3;
+  --success: #1f7a4d;
+
+  --stage-applied: #56698f;
+  --stage-applied-soft: #e8ecf4;
+  --stage-screen: #b9700b;
+  --stage-screen-soft: #f8ecd8;
+  --stage-interview: #6a4fbf;
+  --stage-interview-soft: #ece7f8;
+  --stage-offer: #1f7a4d;
+  --stage-offer-soft: #ddefe4;
+  --stage-rejected: #9a4a40;
+  --stage-rejected-soft: #f3e4e1;
+
+  --chart-bar: #2f6b55;
+  --chart-bar-muted: #c9d8cf;
+  --chart-grid: #e4dfd3;
+
+  --focus: #1d5a44;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-xs: 0 1px 0 rgb(30 28 20 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(30 28 20 / 0.06), 0 1px 1px rgb(30 28 20 / 0.03);
+  --shadow-md: 0 6px 16px -6px rgb(30 28 20 / 0.14), 0 2px 4px rgb(30 28 20 / 0.05);
+  --shadow-lg: 0 24px 48px -12px rgb(30 28 20 / 0.22), 0 4px 10px rgb(30 28 20 / 0.06);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #141415;
+    --surface: #19191b;
+    --surface-sunk: #111112;
+    --surface-hover: #1f1f21;
+    --overlay: rgb(0 0 0 / 0.55);
+    --ink: #ededed;
+    --ink-2: #b4b4b8;
+    --ink-3: #8e8e94;
+    --ink-inverse: #111412;
+    --line: #29292c;
+    --line-strong: #38383c;
+    --brand: #8fd1b0;
+    --brand-hover: #a8dec3;
+    --brand-ink: #0e231a;
+    --brand-soft: #1c2d25;
+    --brand-text: #8fd1b0;
+    --attention: #f0b65c;
+    --attention-soft: #2e2416;
+    --attention-dot: #e9a23b;
+    --danger: #f08b78;
+    --danger-hover: #f5a493;
+    --danger-soft: #3a1f1a;
+    --success: #7ccfa2;
+    --stage-applied: #93a7cf;
+    --stage-applied-soft: #1e2431;
+    --stage-screen: #e3a74b;
+    --stage-screen-soft: #2e2516;
+    --stage-interview: #ad97ee;
+    --stage-interview-soft: #251f37;
+    --stage-offer: #7ccfa2;
+    --stage-offer-soft: #182b21;
+    --stage-rejected: #dc8f83;
+    --stage-rejected-soft: #2f1e1b;
+    --chart-bar: #7cc4a0;
+    --chart-bar-muted: #3d5a4b;
+    --chart-grid: #2a2f2c;
+    --focus: #8fd1b0;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 8px 20px -8px rgb(0 0 0 / 0.6), 0 2px 4px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 24px 56px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141415;
+  --surface: #19191b;
+  --surface-sunk: #111112;
+  --surface-hover: #1f1f21;
+  --overlay: rgb(0 0 0 / 0.55);
+  --ink: #ededed;
+  --ink-2: #b4b4b8;
+  --ink-3: #8e8e94;
+  --ink-inverse: #111412;
+  --line: #29292c;
+  --line-strong: #38383c;
+  --brand: #8fd1b0;
+  --brand-hover: #a8dec3;
+  --brand-ink: #0e231a;
+  --brand-soft: #1c2d25;
+  --brand-text: #8fd1b0;
+  --attention: #f0b65c;
+  --attention-soft: #2e2416;
+  --attention-dot: #e9a23b;
+  --danger: #f08b78;
+  --danger-hover: #f5a493;
+  --danger-soft: #3a1f1a;
+  --success: #7ccfa2;
+  --stage-applied: #93a7cf;
+  --stage-applied-soft: #1e2431;
+  --stage-screen: #e3a74b;
+  --stage-screen-soft: #2e2516;
+  --stage-interview: #ad97ee;
+  --stage-interview-soft: #251f37;
+  --stage-offer: #7ccfa2;
+  --stage-offer-soft: #182b21;
+  --stage-rejected: #dc8f83;
+  --stage-rejected-soft: #2f1e1b;
+  --chart-bar: #7cc4a0;
+  --chart-bar-muted: #3d5a4b;
+  --chart-grid: #2a2f2c;
+  --focus: #8fd1b0;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 8px 20px -8px rgb(0 0 0 / 0.6), 0 2px 4px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 24px 56px -12px rgb(0 0 0 / 0.7), 0 4px 12px rgb(0 0 0 / 0.4);
+}
