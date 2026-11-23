@@ -66,10 +66,23 @@ both images to GHCR tagged with the commit SHA, and deploys them to the Containe
 ## Documentation
 
 - [Project proposal](docs/proposal.md)
-- Scrum records, decisions and data model: coming in `docs/`
+- [Decision records](docs/decisions.md)
+- [Data model](docs/data-model.md)
+- [Database migrations](docs/database-migrations.md)
+- [Insights API](docs/insights-api.md)
+- [Monitoring](docs/monitoring/README.md)
+- Scrum: [Definition of Done](docs/scrum/definition-of-done.md),
+  [Sprint 0](docs/scrum/sprint-0.md),
+  [Sprint 1](docs/scrum/sprint-1.md),
+  [Sprint 2](docs/scrum/sprint-2.md)
+- [AI usage](AI_USAGE.md)
 
 ## Team
 
 | Member | GitHub username |
 | --- | --- |
-| TBD | TBD |
+| Marija Velkoska | [velkosska](https://github.com/velkosska) |
+| Aakriti Adhikari | [adh-aakriti](https://github.com/adh-aakriti) |
+| Alejandro Serrano | [alejandroserranosanchez](https://github.com/alejandroserranosanchez) |
+| Khadeja | [digaaaa](https://github.com/digaaaa) |
+| Edard | [edardhala](https://github.com/edardhala) |
