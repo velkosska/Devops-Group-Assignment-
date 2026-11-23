@@ -51,8 +51,14 @@ cd applications-api && pytest
 cd ../insights-api && pytest
 ```
 
+From `ui/`:
+
+```bash
+cd ui && npm ci && npm test
+```
+
 CI also runs ruff, black, a 70% coverage gate on `app/domain`, bandit and pip-audit for both
-services.
+services, plus eslint, prettier, typecheck, vitest and a production build for the UI.
 
 ## Reproduce the Azure setup
 
@@ -69,6 +75,7 @@ both images to GHCR tagged with the commit SHA, and deploys them to the Containe
 - [Decision records](docs/decisions.md)
 - [Data model](docs/data-model.md)
 - [Database migrations](docs/database-migrations.md)
+- [Azure setup](docs/azure-setup.md)
 - [Insights API](docs/insights-api.md)
 - [Monitoring](docs/monitoring/README.md)
 - Scrum: [Definition of Done](docs/scrum/definition-of-done.md),
