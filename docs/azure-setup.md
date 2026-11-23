@@ -42,7 +42,7 @@ Serverless, 0.5 to 1 vCore, 15-minute auto-pause, 2 GB. The firewall allows Azur
 az deployment group create -g rg-sdd-3b-g4 -f infra/swa.bicep --name swa
 ```
 
-Its address is the only origin both services allow (CORS).
+Its address is the only origin both services allow (CORS). CD builds the UI and uploads it here on every merge to main, using a deployment token it reads from Azure at deploy time.
 
 ## 4. One database user per service
 

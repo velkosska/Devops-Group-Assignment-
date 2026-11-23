@@ -43,7 +43,7 @@ The brief requires deploying to Azure on every merge to main, only if CI passed,
 
 ### Decision
 - Every Azure resource is defined in Bicep in `infra/` (environment and logs, SQL server and databases, Static Web App, Container Apps) and deployed once from Cloud Shell, previewed with `what-if` first. One contained database user per service is created by `infra/create-db-users.sh`. The steps are in [azure-setup.md](azure-setup.md).
-- CI runs on every pull request and push. CD runs on main only: it calls CI and the Docker build on the same commit and only if both pass pushes both images to GHCR tagged with the commit SHA, then points both Container Apps at those images and retries `/health` for up to about 5 minutes per service, failing the run otherwise.
+- CI runs on every pull request and push. CD runs on main only: it calls CI and the Docker build on the same commit and only if both pass pushes both images to GHCR tagged with the commit SHA, then points both Container Apps at those images and retries `/health` for up to about 5 minutes per service, failing the run otherwise. It then builds the UI with the live API addresses baked in and uploads it to the Static Web App.
 - The pipeline signs in as the managed identity `sdd-3b-g4-github` through OIDC, trusted only for runs on main of this repository. No Azure password exists anywhere.
 - Database URLs and the shared API key are stored only as Container App secrets. CD only changes the image, so it never needs them.
 - Container Apps scale from 0 to 1 replica. The startup probe allows about 3.5 minutes, so a paused database can resume and migrations can run.
@@ -59,4 +59,4 @@ The brief requires deploying to Azure on every merge to main, only if CI passed,
 - The first request after a quiet period can take one to two minutes (container start plus database resume). The startup probe and the CD health check allow for it.
 - Redeploying `infra/containerapps.bicep` needs the database passwords again, so the user script is run first to set new ones. This doubles as password rotation.
 - On 23 November Azure suspended the Container Apps environment's compute. Because it was defined in Bicep, we deleted it and recreated it from the same Bicep file instead of rebuilding it by hand.
-- The UI upload step can only be added to CD once the `ui/` folder exists.
+- The UI reads the API addresses at build time, so CD rebuilds it on every deploy. If either address were missing, the UI would quietly fall back to demo data, so the build fails instead.

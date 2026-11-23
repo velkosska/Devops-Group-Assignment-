@@ -61,7 +61,7 @@ group `rg-sdd-3b-g4` (westeurope). The step-by-step guide, with every command an
 [docs/azure-setup.md](docs/azure-setup.md).
 
 After that one-time setup, only the pipeline changes anything: every merge to `main` runs CI, pushes
-both images to GHCR tagged with the commit SHA, and deploys them to the Container Apps.
+both images to GHCR tagged with the commit SHA, and deploys them to the Container Apps, then builds the UI against them and uploads it to the Static Web App.
 
 ## Documentation
 
