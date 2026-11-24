@@ -29,6 +29,7 @@ dist/
 node_modules/
 ui/dist/
 ui/coverage/
+ui/.vite/
 npm-debug.log*
 
 # Infrastructure as code local state

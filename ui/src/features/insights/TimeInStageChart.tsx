@@ -4,6 +4,8 @@ import type { StageDuration } from "../../lib/analytics";
 import { formatDays, slowestStage } from "../../lib/headline";
 import { STAGE_META } from "../../lib/stages";
 
+const NO_DATA = "No data yet";
+
 export function TimeInStageChart({ durations }: { durations: StageDuration[] }) {
   const [table, setTable] = useState(false);
   const max = Math.max(...durations.map((d) => d.medianDays ?? 0), 1);
@@ -25,7 +27,7 @@ export function TimeInStageChart({ durations }: { durations: StageDuration[] }) 
               <tr key={d.stage}>
                 <th scope="row">{STAGE_META[d.stage].label}</th>
                 <td className="num">
-                  {d.medianDays === null ? "Not enough data" : formatDays(d.medianDays)}
+                  {d.medianDays === null ? NO_DATA : formatDays(d.medianDays)}
                 </td>
               </tr>
             ))}
@@ -36,7 +38,7 @@ export function TimeInStageChart({ durations }: { durations: StageDuration[] }) 
           {durations.map((d, i) => {
             const tip =
               d.medianDays === null
-                ? `${STAGE_META[d.stage].label}: not enough data yet`
+                ? `${STAGE_META[d.stage].label}: no data yet`
                 : `${STAGE_META[d.stage].label}: median ${formatDays(d.medianDays)}`;
             return (
               <li
@@ -59,7 +61,7 @@ export function TimeInStageChart({ durations }: { durations: StageDuration[] }) 
                   )}
                 </div>
                 <div className="bars__value num">
-                  {d.medianDays === null ? "—" : formatDays(d.medianDays)}
+                  {d.medianDays === null ? NO_DATA : formatDays(d.medianDays)}
                 </div>
               </li>
             );
