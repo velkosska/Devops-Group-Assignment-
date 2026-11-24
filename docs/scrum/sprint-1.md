@@ -1,8 +1,9 @@
 # Sprint 1 (11–18 November)
 
 ## Roles
-- Product Owner: TODO (confirm with team)
-- Scrum Master: TODO (confirm with team)
+- Product Owner: Marija (`velkosska`)
+- Scrum Master: Marija (`velkosska`)
+- Developers: Marija (`velkosska`), Aakriti (`adh-aakriti`), Alejandro (`alejandroserranosanchez`), Khadeja (`digaaaa`), Edard (`edardhala`)
 
 ## Sprint Goal
 Skeleton deployed to Azure by the pipeline, then the first core
