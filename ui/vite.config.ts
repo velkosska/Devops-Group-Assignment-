@@ -12,6 +12,9 @@ export default defineConfig({
     coverage: {
       include: ["src/lib/**", "src/api/**", "src/state/**"],
       reporter: ["text", "html"],
+      // CI runs `npm run coverage`, so dropping below these fails the build,
+      // like the coverage gate on the Python services.
+      thresholds: { lines: 90, statements: 85, functions: 85, branches: 75 },
     },
   },
 });

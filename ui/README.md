@@ -27,7 +27,7 @@ With only the applications URL set, the dashboard shows "Insights are temporaril
 ```bash
 npm run lint && npm run format:check && npm run typecheck
 npm test           # unit + user-journey tests
-npm run coverage   # coverage of src/lib, src/api, src/state
+npm run coverage   # coverage of src/lib, src/api, src/state; fails below the floor in vite.config.ts
 npm run build      # static output in dist/
 ```
 
