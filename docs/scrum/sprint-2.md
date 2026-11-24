@@ -1,8 +1,8 @@
 # Sprint 2 (19–24 November)
 
 ## Roles
-- Product Owner: TODO (confirm with team before the Sprint Review)
-- Scrum Master: TODO (confirm with team before the Sprint Review)
+- Product Owner: Aakriti (`adh-aakriti`)
+- Scrum Master: Aakriti (`adh-aakriti`)
 - Developers: Marija (`velkosska`), Aakriti (`adh-aakriti`), Alejandro (`alejandroserranosanchez`), Khadeja (`digaaaa`), Edard (`edardhala`)
 
 ## Sprint Goal

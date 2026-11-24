@@ -1,8 +1,9 @@
 # Sprint 0 (4–10 November)
 
 ## Roles
-- Product Owner: TODO (confirm with team)
-- Scrum Master: TODO (confirm with team)
+- Product Owner: Marija (`velkosska`)
+- Scrum Master: Marija (`velkosska`)
+- Developers: Marija (`velkosska`), Aakriti (`adh-aakriti`), Alejandro (`alejandroserranosanchez`), Khadeja (`digaaaa`), Edard (`edardhala`)
 
 ## Sprint Goal
 Team, roles, product idea, initial Product Backlog, repository,
