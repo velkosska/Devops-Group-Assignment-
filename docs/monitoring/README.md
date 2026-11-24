@@ -64,9 +64,9 @@ claim requires confirmation that the workspace collected data over that window.
 | --- | --- |
 | Deployment of commit `c666c1a` | GitHub Actions CD completed successfully at 15:58 UTC. [Deployment run](https://github.com/velkosska/Devops-Group-Assignment-/actions/runs/45430809682) |
 | Applications API and Insights API | Both public `GET /health` endpoints returned HTTP 200 and `{"status":"ok"}` at 17:11 UTC using the URLs in the [root README](../../README.md#live-url). |
-| Production log ingestion | A teammate reported that logs from both apps arrived and that the queries ran. Raw workspace rows and query results were unavailable to the author of this evidence. |
-| Dashboard measurements and saved queries | Pending authorized workspace verification. Request count, error rate, latency and failed-request totals are unavailable. Saved query location is unverified. |
-| Seven-day board SLO | Pending authorized workspace verification. Eligible count, good count, score and observation window are unavailable. |
+| Production log ingestion | Verified on 24 November with workspace access: JSON request lines from both apps arrive in `ContainerAppConsoleLogs_CL`. |
+| Dashboard measurements and saved queries | Run at about 19:15 UTC over the last 24 h, `/health` probes excluded. applications-api: 22 requests, 3 HTTP errors (13.64%, expected 404s from the CD smoke test checking that a deleted application is gone), 0 server errors, average 75.17 ms, p50 34.21 ms, p95 247.69 ms, p99 282.08 ms. insights-api: 21 requests, 0 HTTP errors, 0 server errors, average 15.95 ms, p50 13.73 ms, p95 34.81 ms, p99 35.6 ms. Saved in the workspace as the legacy queries "Service request totals" and "Board API latency SLO" (Logs, Queries hub, Other). |
+| Seven-day board SLO | At target: 21 of 21 eligible `GET /applications` requests returned 2xx in under 400 ms (100% against the 99% target). Observation window 23 November 15:43 to 24 November 18:59 UTC, shorter than seven days and a small sample, part of it from CD smoke tests. |
 
 The deployment guide identifies the subscription as Azure Simple IE Instituto
 de Empresa, S.L., the resource group as `rg-sdd-3b-g4` in West Europe, and the
@@ -83,6 +83,8 @@ Workspaces, returned `AuthorizationFailed` for both
 `Microsoft.OperationalInsights/workspaces/read`. Refreshing the subscription
 list did not reveal the documented deployment subscription. No Log Analytics
 query could be executed with this identity.
+
+The log, dashboard and SLO rows above were then measured by Aakriti (`adh-aakriti`), who has access to the workspace, and the screenshots are in the comments of PR #65.
 
 ## Capture the remaining evidence
 
