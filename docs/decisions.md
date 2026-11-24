@@ -90,7 +90,9 @@ resource group.
   CD only changes the image, so it never needs them.
 - Container Apps scale from 0 to 1 replica. The startup probe allows about 3.5
   minutes, so a paused database can resume and migrations can run.
-- Branch protection: PR + review required to merge to `main`.
+- Branch protection (ruleset `protect-main`): a pull request with one approval and
+  green CI (tests, secret scan, Dockerfile lint and image builds) is required to
+  merge to `main`. The required CI checks were added on 24 November.
 
 ### Alternatives considered
 - Azure CLI commands instead of Bicep: rejected, because Bicep is repeatable, can
@@ -176,3 +178,70 @@ contains the queries and workspace verification steps.
 - The dashboard and SLO must be verified after deployment.
 - The SLO measures application handling time for observed requests. Ingress
   failures and waits before the app receives a request are outside this measure.
+
+---
+
+## 6. Event delivery: best-effort push now, outbox later, no broker
+
+### Context
+insights-api needs every create, stage move and delete from applications-api to
+build its history. The board must never fail or slow down badly because analytics
+is down. The brief puts message brokers out of scope.
+
+### Decision
+- After its own database commit, applications-api sends `POST /events` to
+  insights-api with a new `event_id` (UUID), an `X-API-Key` header and a
+  two-second timeout (`INSIGHTS_TIMEOUT_SECONDS`).
+- Any failure (timeout, connection error, non-202 status) is logged as a warning
+  without the payload, URL or key, and the board request still succeeds.
+- insights-api stores events idempotently on `event_id`: an identical replay is
+  accepted, a different payload with the same id is rejected with 409.
+- No retry and no outbox in the MVP.
+
+### Alternatives considered
+- Transactional outbox (an `outbox` table written in the same transaction,
+  retried later): the proposal's stretch goal. Not built in time; it is the next
+  step, and the idempotent `event_id` intake already makes retries safe.
+- Message broker (Service Bus, Kafka): out of scope in the brief and an extra
+  paid resource.
+- insights-api reading the applications database directly: breaks the
+  one-database-per-service rule.
+- Synchronous "both or nothing" writes: would make the board fail whenever
+  analytics fails, which is the coupling the split exists to avoid.
+
+### Consequences
+- Analytics are eventually consistent and can permanently miss an event sent
+  while insights-api was down. This is a known, documented gap.
+- A board write waits for the send, so with insights-api down a stage move takes
+  up to about two seconds longer (2.59 s measured locally).
+- The CD smoke test proves the event crosses between the services on every
+  deploy: the funnel total goes up after create and back down after delete.
+
+---
+
+## 7. Cold starts: scale to zero and serverless auto-pause
+
+### Context
+The brief caps us at one replica per Container App and asks for scale to zero.
+Azure SQL serverless pauses after 15 idle minutes. Our SLO is on board latency.
+
+### Decision
+- Keep `minReplicas: 0` and auto-pause on, to stay within the brief and the
+  budget.
+- Allow for the worst case instead of hiding it: startup retry for the database
+  (up to 90 s), a startup probe of about 3.5 minutes, a CD health check of up to
+  about 5 minutes, and a three-second UI timeout with one retry on insights.
+- `/health` does not touch the database, so a paused database does not make the
+  container restart in a loop.
+
+### Alternatives considered
+- `minReplicas: 1` and no auto-pause: fast first requests, but always-on cost
+  and against the brief's scale-to-zero requirement.
+- A scheduled "keep warm" ping: hides the real behaviour and still costs compute.
+
+### Consequences
+- The first request after a quiet period can take 30 seconds to two minutes, or
+  return a 503. The README warns about this; before a demo we pre-warm both
+  services.
+- Cold-start requests show up as slow in the logs and count against the SLO; we
+  report them rather than filtering them out.

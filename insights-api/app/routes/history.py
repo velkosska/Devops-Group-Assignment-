@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.db import get_session
 from app.domain.history import HistorySummary, StaleApplication, Transition, summarize_history
 from app.domain.stages import Stage
-from app.repositories.events import read_events
+from app.repositories.events import read_application_events, read_events
 
 router = APIRouter(tags=["analytics"])
 MAX_HISTORY_EVENTS = 50_000
@@ -30,6 +30,17 @@ class HistoricalFunnel(BaseModel):
 class StageDuration(BaseModel):
     stage: Stage
     median_days: float | None
+
+
+class TimelineEvent(BaseModel):
+    from_stage: Stage | None
+    to_stage: Stage | None
+    occurred_at: datetime
+
+
+class Timeline(BaseModel):
+    application_id: int
+    events: list[TimelineEvent]
 
 
 class StaleApplications(BaseModel):
@@ -89,4 +100,30 @@ def stale_applications(
 ) -> StaleApplications:
     return StaleApplications(
         threshold_days=days, applications=analytics_snapshot(session, threshold_days=days).stale
+    )
+
+
+@router.get("/timeline/{application_id}")
+def application_timeline(
+    session: Database, application_id: Annotated[int, Path(gt=0, le=2**63 - 1)]
+) -> Timeline:
+    """Stage history of one application, oldest first. 404 if unknown or deleted."""
+    if session is None:
+        raise HTTPException(status_code=503, detail="Event storage is not configured")
+    try:
+        records = read_application_events(session, application_id)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=503, detail="Event storage is unavailable") from None
+    if not records or records[-1].to_stage is None:
+        raise HTTPException(status_code=404, detail="No history for this application")
+    return Timeline(
+        application_id=application_id,
+        events=[
+            TimelineEvent(
+                from_stage=record.from_stage,
+                to_stage=record.to_stage,
+                occurred_at=record.occurred_at.replace(tzinfo=UTC),
+            )
+            for record in records
+        ],
     )

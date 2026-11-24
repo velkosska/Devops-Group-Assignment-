@@ -1,14 +1,29 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings, get_settings
 from app.db import initialise_database
 from app.logging_config import configure_logging, request_logging_middleware
 from app.routes import applications, health
+
+logger = logging.getLogger(__name__)
+
+
+async def database_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """A database failure mid-request becomes a clear 503, never a bare 500 page."""
+    logger.warning(
+        "database error on %s %s (%s)", request.method, request.url.path, type(exc).__name__
+    )
+    return JSONResponse(
+        status_code=503, content={"detail": "The database is temporarily unavailable"}
+    )
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -33,6 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = None
     app.include_router(health.router)
     app.include_router(applications.router)
+    app.add_exception_handler(SQLAlchemyError, database_error_handler)
 
     # CORS is restricted to the static UI origin only.
     app.add_middleware(

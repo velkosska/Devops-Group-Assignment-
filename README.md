@@ -97,6 +97,30 @@ group `rg-sdd-3b-g4` (westeurope). The step-by-step guide, with every command an
 After that one-time setup, only the pipeline changes anything: every merge to `main` runs CI, pushes
 both images to GHCR tagged with the commit SHA, and deploys them to the Container Apps, then builds the UI against them and uploads it to the Static Web App.
 
+## Delivered vs proposed
+
+What we shipped compared with [the proposal](docs/proposal.md), including what we did
+not get to. Each gap has a reason in the [decision records](docs/decisions.md).
+
+| Proposal item | Status | Where / why |
+| --- | --- | --- |
+| Applications CRUD, stage moves, board UI | Delivered | `applications-api/`, `ui/src/features/board/` |
+| Stage events to insights-api | Delivered, best effort | Decision record 6; events sent while insights is down are lost |
+| Funnel, time in stage, stale alerts | Delivered | `insights-api/app/domain/history.py`, Insights page |
+| Application timeline (stretch) | Delivered | `GET /timeline/{id}`, History section of the detail panel |
+| Drag and drop (stretch) | Delivered | Cards can also move with buttons and the keyboard |
+| Partial-failure banners and timeouts | Delivered | UI banners for both services; rehearsed locally, see [monitoring](docs/monitoring/README.md#partial-failure-rehearsal) |
+| CI: lint, format, tests, 70% domain coverage gate, security scans, image build | Delivered | `.github/workflows/ci.yml`, `docker.yml`, `codeql.yml` |
+| CD: SHA-tagged images, deploy, `/health` gate, UI upload | Delivered | `.github/workflows/cd.yml` |
+| Post-deploy smoke test (stretch) | Delivered | CRUD, cross-service event check and CORS on the live URLs, every deploy |
+| Bicep for all resources (stretch) | Delivered | `infra/`; the pipeline identity was created by the professor |
+| Log queries and board SLO | Delivered, provisional | Saved queries in `sdd-3b-g4-logs`; about one day of data, not seven |
+| Blue-green deploys with revisions (stretch) | Not built | Decision record 3: single-revision mode within the one-replica cap |
+| Outbox with retry (stretch) | Not built | Decision record 6; intake is already idempotent on `event_id`, so it can be added |
+| Azure Workbook | Not built | The dashboard is a set of saved Log Analytics queries instead |
+| SQL Server integration tests in CI | Not in CI | They exist and pass against SQL Server in Compose, but CI runs on SQLite; the compose smoke job only checks `/health` |
+| Release tags per sprint | Only `submission` | Sprints 0 and 1 produced no release, see the [sprint records](docs/scrum/) |
+
 ## Documentation
 
 - [Project proposal](docs/proposal.md)

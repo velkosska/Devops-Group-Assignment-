@@ -65,3 +65,12 @@ def read_events(session: Session, *, limit: int = 50_001):
         StageEventRecord.application_id, StageEventRecord.occurred_at, StageEventRecord.sequence
     )
     return session.scalars(statement.limit(limit).execution_options(yield_per=500))
+
+
+def read_application_events(session: Session, application_id: int) -> list[StageEventRecord]:
+    statement = (
+        select(StageEventRecord)
+        .where(StageEventRecord.application_id == application_id)
+        .order_by(StageEventRecord.occurred_at, StageEventRecord.sequence)
+    )
+    return list(session.scalars(statement))

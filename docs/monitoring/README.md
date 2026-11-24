@@ -68,28 +68,25 @@ claim requires confirmation that the workspace collected data over that window.
 | Dashboard measurements and saved queries | Run at about 19:15 UTC over the last 24 h, `/health` probes excluded. applications-api: 22 requests, 3 HTTP errors (13.64%, expected 404s from the CD smoke test checking that a deleted application is gone), 0 server errors, average 75.17 ms, p50 34.21 ms, p95 247.69 ms, p99 282.08 ms. insights-api: 21 requests, 0 HTTP errors, 0 server errors, average 15.95 ms, p50 13.73 ms, p95 34.81 ms, p99 35.6 ms. Saved in the workspace as the legacy queries "Service request totals" and "Board API latency SLO" (Logs, Queries hub, Other). |
 | Seven-day board SLO | At target: 21 of 21 eligible `GET /applications` requests returned 2xx in under 400 ms (100% against the 99% target). Observation window 23 November 15:43 to 24 November 18:59 UTC, shorter than seven days and a small sample, part of it from CD smoke tests. |
 
-The deployment guide identifies the subscription as Azure Simple IE Instituto
-de Empresa, S.L., the resource group as `rg-sdd-3b-g4` in West Europe, and the
-apps as `sdd-3b-g4-api` and `sdd-3b-g4-insights`. The Bicep configuration
-selects `sdd-3b-g4-logs`. The expected direct-ingestion schema is
-`ContainerAppConsoleLogs_CL` with `TimeGenerated`, `ContainerAppName_s`, and
-`Log_s`. These resource and schema details come from the repository and
-Microsoft's documentation. The public health check verifies service reachability.
+Who verified what: Khadeja (`digaaaa`) checked the CD run and the public health
+endpoints, but her Azure identity has no access to the IE subscription that holds
+`rg-sdd-3b-g4`. Aakriti (`adh-aakriti`), who has Contributor on the resource
+group, then ran the queries in `sdd-3b-g4-logs`, saved two of them in the
+workspace and measured the numbers above. Screenshots of the query results are
+attached to the comments of PR #65.
 
-The native Azure CLI was signed in. The default Azure for Students subscription
-returned `ResourceGroupNotFound`. The only other visible subscription, IE
-Workspaces, returned `AuthorizationFailed` for both
-`Microsoft.Resources/subscriptions/resourcegroups/read` and
-`Microsoft.OperationalInsights/workspaces/read`. Refreshing the subscription
-list did not reveal the documented deployment subscription. No Log Analytics
-query could be executed with this identity.
+### Limits we report honestly
 
-The log, dashboard and SLO rows above were then measured by Aakriti (`adh-aakriti`), who has access to the workspace, and the screenshots are in the comments of PR #65.
+- There is no Azure Workbook. The dashboard is the set of saved Log Analytics
+  queries listed above; a Workbook was planned in the proposal but not built.
+- No alert rules exist yet (for example on the SLO or on the 5xx rate).
+- The SLO sample is about one day and 21 requests, most of them from the CD smoke
+  test, so the 100% score is provisional, not a seven-day result.
 
-## Capture the remaining evidence
+## Re-running the evidence queries
 
-A teammate with access can complete this from **sdd-3b-g4-logs ? Logs** in the
-Azure portal. First confirm the table and three columns named above. To verify
+Anyone with access to the workspace can repeat this from **sdd-3b-g4-logs > Logs**
+in the Azure portal. First confirm the table and three columns named above. To verify
 ingestion and see the timestamps available for each app, run this against the
 raw log table after confirming its schema.
 
@@ -128,15 +125,16 @@ that instead of treating it as a pass.
 
 ## Partial-failure rehearsal
 
-After the board, event sender and Compose configuration are integrated, use a
-disposable local stack for the failure demo. Create a test application, move it
-to Interview and Rejected, then compare the dashboard with the known sequence.
-Both stages should appear in the historical funnel. Stop only the local Insights
-container. Confirm a board update still succeeds, event delivery finishes or
-times out within the sender's two-second budget, and the UI shows a clear
-Insights error after its timeout. Restart Insights and submit another transition.
-Verify new events arrive and earlier committed events remain readable.
+The failure path is implemented and tested: applications-api sends events with a
+two-second timeout and never fails the board write
+(`applications-api/tests/test_insights_http_errors.py`), and the UI shows
+"Insights are temporarily unavailable" after a three-second timeout and one retry.
+It was rehearsed on a local Compose stack (see
+[insights-event-delivery.md](../insights-event-delivery.md)): with insights-api
+stopped, a stage move still returned 200 in 2.59 s, and delivery resumed after a
+restart. Events sent while insights-api was down are lost, because delivery is
+best effort (decision record 6).
 
-The proposal's MVP accepts that an event may be missed while the sender cannot
-reach Insights. If the sender adds retries, it must reuse the same event UUID.
-Proof of this end-to-end behavior depends on the Applications API sender and UI.
+To repeat it locally: `docker compose up --build`, run the UI with
+`npm run dev`, then `docker compose stop insights-api`, move a card, and open
+Insights. `docker compose start insights-api` brings it back.

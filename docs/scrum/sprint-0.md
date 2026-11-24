@@ -29,4 +29,18 @@ a page or `/health`).
 - Local skeleton
 
 ## Retrospective
-TODO: why the sprint goal was not met, and what we agree to change.
+Written up on 24 November.
+
+**How we worked this sprint**
+- 8–10 November: ideation in the team WhatsApp group, collecting and comparing
+  product ideas. No idea was chosen by the end of the sprint.
+
+**What went wrong**
+- We spent the sprint discussing ideas in chat instead of picking one, so there
+  was nothing to put in a backlog and no one could start work.
+- Chat was a slow place to decide: no agenda, no deadline for a decision.
+- No repository existed, so no work could be shared or reviewed.
+
+**What we agreed to change**
+- Decide the product idea before anything else (done on 18 November).
+- Create the repository and Definition of Done straight away (done 18–19 November).
