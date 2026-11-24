@@ -49,6 +49,27 @@ reviewed pull requests.
 In class on 25–26 November (live demo from the public URL once deploy succeeds).
 
 ## Retrospective
-To be filled after the Sprint Review. Carried agreements from earlier slips:
-keep PRs small and reviewed, prefer a working deployed MVP over extra features,
-and do not block the whole team on one owner when the deadline is close.
+Interim retrospective written on 24 November from the sprint record; it will be
+updated after the Sprint Review.
+
+**What went well**
+- The Sprint 1 agreements worked: 60+ small pull requests from all five members,
+  most of them reviewed and approved.
+- Infrastructure as code paid off: when Azure suspended the Container Apps
+  environment on 23 November, we recreated it from Bicep.
+- Every merge to `main` deploys and runs an end-to-end smoke test on the live
+  services (19 of 19 CD runs green).
+
+**What did not go well**
+- Everything was built in five days, so the stretch goals with the most credit
+  (blue-green deploys, outbox) were not reached, while drag and drop was.
+- Nine pull requests were merged without an approving review (seven before the
+  `protect-main` ruleset existed, plus #31 and #35), and CI
+  was not a required check on `main`.
+- Monitoring evidence depended on the one member with workspace access.
+- The Product Owner and Scrum Master were the same person in every sprint.
+
+**What we agree to change**
+- Make green CI a required status check on `main`.
+- Give at least two members access to the Log Analytics workspace.
+- Split the Product Owner and Scrum Master roles between two people.

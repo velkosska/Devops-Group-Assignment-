@@ -73,8 +73,9 @@ The standard suite also renders the migration as SQL Server SQL without a databa
 | `GET /funnel` | `{total_applications, stages: [{stage, count, percentage}]}` |
 | `GET /time-in-stage` | `[{stage, median_days}]`. Missing samples return null. |
 | `GET /stale?days=14` | `{threshold_days, applications: [{application_id, stage, last_activity_at}]}` |
+| `GET /timeline/{application_id}` | `{application_id, events: [{from_stage, to_stage, occurred_at}]}`, oldest first. 404 for an unknown or deleted application. |
 
-The three GET routes follow the proposal and use the same stage order as the domain
+The funnel, time-in-stage and stale routes follow the proposal and use the same stage order as the domain
 enum. The funnel denominator is distinct applications with at least one event and
 no latest deletion event. An application with no recorded history is outside the
 observed population. Each application contributes at most once per observed stage,
@@ -94,5 +95,6 @@ future latest events. Applications with no observed activity are absent. The
 The service reads up to 50,001 ordered rows per request and returns 503 if more than
 50,000 events are present, rather than returning partial analytics. The event read
 uses the history index. This MVP uses full observed history within that bound.
-Unavailable storage also returns 503. The request-supplied POST analytics API in
-PR #15 uses separate routes and can coexist with these GET endpoints.
+Unavailable storage also returns 503. The earlier request-supplied `POST /analytics/*`
+routes from PR #15 were removed on 24 November: the UI never used them, they were
+unauthenticated, and the GET routes above replaced them.

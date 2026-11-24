@@ -161,3 +161,22 @@ def test_routes_are_503_when_no_database_is_configured() -> None:
 
     assert response.status_code == 503
     assert response.json() == {"detail": "Database is not configured"}
+
+
+def test_database_failure_mid_request_is_a_clear_503(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sqlalchemy.exc import OperationalError
+
+    from app.repositories.applications import SqlApplicationRepository
+
+    def paused(*_args: object, **_kwargs: object) -> None:
+        raise OperationalError("SELECT", {}, Exception("secret connection detail"))
+
+    monkeypatch.setattr(SqlApplicationRepository, "list_applications", paused)
+    response = client.get("/applications")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "The database is temporarily unavailable"}
+    assert "secret" not in response.text
+    assert client.get("/health").status_code == 200
