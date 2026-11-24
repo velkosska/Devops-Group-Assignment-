@@ -28,8 +28,9 @@ Azure Monitor resource-specific diagnostics, map the header to
 4. For each report below, paste the shared query header followed by that report.
    Use **Save as query** and share it with the workspace/team if permitted.
    Replace the header in existing saved dashboard queries with the updated
-   version and save them again. Use the saved queries as the dashboard. For the review, show request count,
-   error rate and p95 by service. Empty buckets indicate no observed requests.
+   version and save them again. Use the saved queries as the dashboard. Show
+   request count, error rate and p95 by service at the review. Empty buckets
+   indicate no observed requests.
 
 | Saved query | What to show |
 | --- | --- |
@@ -57,15 +58,73 @@ the verified observation window. If fewer than seven days are available, label
 the score provisional and state the actual period. A full-window alert or
 claim requires confirmation that the workspace collected data over that window.
 
-## Evidence status
+## Production evidence on 24 November 2026
 
-- Local verification confirmed structured request logging to stdout with method,
-  path, status and duration. Existing tests also verify CORS and logging.
-- The available Azure CLI session required sign-in. No workspace query, saved
-  query, dashboard link, screenshot, or measured SLO result was obtained.
-- Record the workspace link, actual table and column names, UTC verification
-  timestamps, saved query links and measured results here after deployment.
-- The SLO requires the Applications API list route to be deployed and exercised.
+| Check | Result |
+| --- | --- |
+| Deployment of commit `c666c1a` | GitHub Actions CD completed successfully at 15:58 UTC. [Deployment run](https://github.com/velkosska/Devops-Group-Assignment-/actions/runs/45430809682) |
+| Applications API and Insights API | Both public `GET /health` endpoints returned HTTP 200 and `{"status":"ok"}` at 17:11 UTC using the URLs in the [root README](../../README.md#live-url). |
+| Production log ingestion | Verified on 24 November with workspace access: JSON request lines from both apps arrive in `ContainerAppConsoleLogs_CL`. |
+| Dashboard measurements and saved queries | Run at about 19:15 UTC over the last 24 h, `/health` probes excluded. applications-api: 22 requests, 3 HTTP errors (13.64%, expected 404s from the CD smoke test checking that a deleted application is gone), 0 server errors, average 75.17 ms, p50 34.21 ms, p95 247.69 ms, p99 282.08 ms. insights-api: 21 requests, 0 HTTP errors, 0 server errors, average 15.95 ms, p50 13.73 ms, p95 34.81 ms, p99 35.6 ms. Saved in the workspace as the legacy queries "Service request totals" and "Board API latency SLO" (Logs, Queries hub, Other). |
+| Seven-day board SLO | At target: 21 of 21 eligible `GET /applications` requests returned 2xx in under 400 ms (100% against the 99% target). Observation window 23 November 15:43 to 24 November 18:59 UTC, shorter than seven days and a small sample, part of it from CD smoke tests. |
+
+The deployment guide identifies the subscription as Azure Simple IE Instituto
+de Empresa, S.L., the resource group as `rg-sdd-3b-g4` in West Europe, and the
+apps as `sdd-3b-g4-api` and `sdd-3b-g4-insights`. The Bicep configuration
+selects `sdd-3b-g4-logs`. The expected direct-ingestion schema is
+`ContainerAppConsoleLogs_CL` with `TimeGenerated`, `ContainerAppName_s`, and
+`Log_s`. These resource and schema details come from the repository and
+Microsoft's documentation. The public health check verifies service reachability.
+
+The native Azure CLI was signed in. The default Azure for Students subscription
+returned `ResourceGroupNotFound`. The only other visible subscription, IE
+Workspaces, returned `AuthorizationFailed` for both
+`Microsoft.Resources/subscriptions/resourcegroups/read` and
+`Microsoft.OperationalInsights/workspaces/read`. Refreshing the subscription
+list did not reveal the documented deployment subscription. No Log Analytics
+query could be executed with this identity.
+
+The log, dashboard and SLO rows above were then measured by Aakriti (`adh-aakriti`), who has access to the workspace, and the screenshots are in the comments of PR #65.
+
+## Capture the remaining evidence
+
+A teammate with access can complete this from **sdd-3b-g4-logs ? Logs** in the
+Azure portal. First confirm the table and three columns named above. To verify
+ingestion and see the timestamps available for each app, run this against the
+raw log table after confirming its schema.
+
+```kusto
+ContainerAppConsoleLogs_CL
+| where TimeGenerated >= ago(7d)
+| where ContainerAppName_s in ("sdd-3b-g4-api", "sdd-3b-g4-insights")
+| extend r = parse_json(Log_s)
+| where isnotempty(tostring(r.method)) and isnotempty(tostring(r.path))
+      and isnotnull(toint(r.status)) and isnotnull(todouble(r.duration_ms))
+| summarize Requests = count(), HealthRequests = countif(tostring(r.path) == "/health"),
+            FirstSeenUtc = min(TimeGenerated), LastSeenUtc = max(TimeGenerated)
+         by Service = ContainerAppName_s
+```
+
+Run the four reports listed above with the shared header prepended and the
+portal time picker set to **Set in query**. For dashboard evidence, export the
+per-service results from **Service request totals** and the five-minute series
+from **Request health by service**. The totals include HTTP and 5xx counts and
+rates, average latency, and p95. Use **Slow and failing endpoints** to inspect
+endpoint-level breakouts. The dashboard intentionally excludes `/health`.
+
+Save or update the dashboard reports in an existing team query pack or as
+workspace-scoped legacy saved queries if the group has access only to the
+workspace. Open the saved queries again and confirm they return real results.
+Provide the workspace or query-pack link, saved query names, and a UTC timestamp.
+[Microsoft Learn guide to saving queries](https://learn.microsoft.com/azure/azure-monitor/logs/save-query)
+
+Export the SLO row with the UTC execution time, eligible and good counts, the
+score, and first and last observed timestamps. The query's denominator is all
+eligible logged `GET /applications` requests. Its numerator requires both
+2xx and latency strictly under 400 ms. Check the ingestion start independently
+of the first eligible request. If coverage is shorter than seven days, report a
+provisional score and its observed period. If the result is **No data**, record
+that instead of treating it as a pass.
 
 ## Partial-failure rehearsal
 
