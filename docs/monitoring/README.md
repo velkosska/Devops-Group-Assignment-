@@ -21,11 +21,14 @@ Azure Monitor resource-specific diagnostics, map the header to
    each app. Record the UTC time, method, path, and received status.
 3. Paste [request-logs.kql](request-logs.kql) and append
    `RequestLogs(30m) | order by TimeGenerated desc | take 30`. Check the recorded
-   requests, app names, statuses and non-negative durations. If the deployment
+   unknown-route requests, app names, statuses and non-negative durations. The
+   shared helper excludes `/health` so liveness probes do not skew dashboard
+   metrics. Check health requests separately in the raw table. If the deployment
    uses different names, edit the query parameters and confirm the SLO filter.
 4. For each report below, paste the shared query header followed by that report.
    Use **Save as query** and share it with the workspace/team if permitted.
-   Use the saved queries as the dashboard. For the review, show request count,
+   Replace the header in existing saved dashboard queries with the updated
+   version and save them again. Use the saved queries as the dashboard. For the review, show request count,
    error rate and p95 by service. Empty buckets indicate no observed requests.
 
 | Saved query | What to show |

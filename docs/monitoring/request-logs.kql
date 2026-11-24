@@ -9,4 +9,5 @@ let RequestLogs = (window:timespan) {
               Status = toint(payload.status), DurationMs = todouble(payload.duration_ms)
     | where isnotempty(Method) and isnotempty(Path)
           and Status between (100 .. 599) and DurationMs >= 0
+    | where Path != "/health"
 };
