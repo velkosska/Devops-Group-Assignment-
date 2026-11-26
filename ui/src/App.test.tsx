@@ -126,7 +126,7 @@ describe("landing page", () => {
     render(<App backend={demo()} />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Know where every job application stands" }),
+      screen.getByRole("heading", { level: 1, name: "Know where every job application stands, live" }),
     ).toBeInTheDocument();
     for (const name of [
       "One card per application",
@@ -185,7 +185,7 @@ describe("home / app switch", () => {
     await user.click(toHome.getByRole("link", { name: "Home" }));
     expect(window.location.pathname).toBe("/");
     expect(
-      screen.getByRole("heading", { level: 1, name: "Know where every job application stands" }),
+      screen.getByRole("heading", { level: 1, name: "Know where every job application stands, live" }),
     ).toBeInTheDocument();
   });
 });
