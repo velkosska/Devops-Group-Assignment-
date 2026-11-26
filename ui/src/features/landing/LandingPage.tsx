@@ -328,7 +328,7 @@ export function LandingPage({ theme, onTheme }: LandingProps) {
         <section className="l-hero" aria-labelledby="hero-title">
           <div className="l-wrap l-hero__text">
             <h1 id="hero-title" className="l-hero__title display">
-              Know where every job application stands, live
+              See where every job application stands
             </h1>
             <p className="l-hero__sub">
               One board for every role you apply to, from Applied to Offer. {APP_NAME} shows where
